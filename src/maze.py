@@ -1,31 +1,20 @@
 import pygame
+import json
+import os
 
 # --- Configuration ---
 TILE_SIZE = 30
 
 # Map with string
 # Define the Map Array: 1=Wall, 2=Normal Pill, 3=Special Pill, 0=Empty Path
-map01 = [
-"1111111111111111111",
-"1222222222222222221",
-"1211121112111211121",
-"1222222212122222221",
-"1211111212121111121",
-"1222231222221322221",
-"1211111112111111121",
-"1222222222222222221",
-"1212111211121112121",
-"0222222210122222220",
-"1212111211121112121",
-"1222222222222222221",
-"1211111112111111121",
-"1222231222221322221",
-"1211111212121111121",
-"1222222212122222221",
-"1211121112111211121",
-"1222222222222222221",
-"1111111111111111111"
-]
+
+# y = dict()
+# Get the directory of the current file and construct the path to maps.json
+maps_file_path = os.path.join(os.path.dirname(__file__), "../data/maps.json")
+with open(maps_file_path, "r") as f:
+    y = json.load(f)
+map01 = y.get("2").get("map")
+
 # Convart STRING TO LIST
 MAP_DATA = [[int(j) for j in i] for i in map01]
 
