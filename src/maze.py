@@ -1,6 +1,7 @@
 import pygame
 import json
 import os
+import sys
 
 # --- Configuration ---
 TILE_SIZE = 30
@@ -8,12 +9,27 @@ TILE_SIZE = 30
 # Map with string
 # Define the Map Array: 1=Wall, 2=Normal Pill, 3=Special Pill, 0=Empty Path
 
-# y = dict()
-# Get the directory of the current file and construct the path to maps.json
-maps_file_path = os.path.join(os.path.dirname(__file__), "../data/maps.json")
-with open(maps_file_path, "r") as f:
-    y = json.load(f)
-map01 = y.get("2").get("map")
+# Get the directory of the current file and construct the path to maze.json
+try:
+    maze_file_path = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "data", "maze.json")
+    )
+    with open(maze_file_path, "r", encoding="utf-8") as f:
+        y = json.load(f)
+    map01 = y["1"]["map"]
+except FileNotFoundError as e:
+    print(f"Map file not found: {e.filename}")
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"Invalid JSON in maze file at line {e.lineno}, col {e.colno}: {e.msg}")
+    sys.exit(1)
+except KeyError as e:
+    print(f"Missing expected key in maze file: {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"Unexpected error loading maze: {e}")
+    sys.exit(1)
+    
 
 # Convart STRING TO LIST
 MAP_DATA = [[int(j) for j in i] for i in map01]
