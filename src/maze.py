@@ -41,7 +41,7 @@ SCREEN_WIDTH = MAP_WIDTH * TILE_SIZE
 SCREEN_HEIGHT = MAP_HEIGHT * TILE_SIZE
 
 # --- Pygame Initialization ---
-pygame.init()
+
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Pacman')
 

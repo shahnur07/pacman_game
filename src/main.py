@@ -4,7 +4,7 @@ from maze import draw_smooth_map
 
 
 clock = pygame.time.Clock()
-
+pygame.init()
 while True:
     # Event handling
     for event in pygame.event.get():
