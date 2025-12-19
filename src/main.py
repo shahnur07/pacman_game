@@ -2,6 +2,8 @@ import pygame
 from sys import exit
 from maze import draw_smooth_map
 
+pygame.init()
+
 
 clock = pygame.time.Clock()
 pygame.init()

@@ -83,7 +83,7 @@ def draw_smooth_map():
                 )
                 pygame.draw.rect(screen, WALL_BODY_COLOR, wall_rect)
 
-            elif tile_value in [0, 2, 3]:
+            elif tile_value in [0, 2, 3, 5, 6, 7, 8, 9]:
                 # --- PATH TILE DRAWING ---
                 # Draw a black rectangle that covers the tile space entirely
                 # (You used TILE_SIZE+4 previously, TILE_SIZE should be fine 
@@ -99,5 +99,6 @@ def draw_smooth_map():
                 elif tile_value == 3:
                     POWER_RADIUS = 8
                     pygame.draw.circle(screen, SPECIAL_PILL_COLOR, (center_x, center_y), POWER_RADIUS)# --- Main Game Loop ---
+    return screen
 
 
