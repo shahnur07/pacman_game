@@ -9,6 +9,7 @@ class Pacman:
         self.start_pos = self.find_start_position()
         self.reset_position()
         
+        self.pallet_count = 0;
         # Movement speed (constant 2 as requested)
         self.speed = 2
         
@@ -31,7 +32,7 @@ class Pacman:
         self.in_tunnel = False
         
         print(f"Pacman starting at tile: {self.start_pos}")
-    
+
     def find_start_position(self):
         """Find Pacman's starting position (tile with value 9)"""
         for y in range(MAP_HEIGHT):
@@ -44,7 +45,7 @@ class Pacman:
         # Fallback if no 9 found
         print("Warning: Pacman start position (9) not found, using default")
         return 9, 1
-    
+
     def reset_position(self):
         """Reset Pacman to starting position"""
         self.px = self.start_pos[0] * TILE_SIZE + TILE_SIZE // 2
@@ -56,21 +57,21 @@ class Pacman:
         self.next_dx = 0
         self.next_dy = 0
         self.in_tunnel = False
-    
+
     def current_tile(self):
         """Get current tile coordinates"""
         return int(self.px // TILE_SIZE), int(self.py // TILE_SIZE)
-    
+
     def get_tile_at(self, x, y):
         """Get tile value at coordinates"""
         if 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT:
             return MAP_DATA[y][x]
         return 1  # Treat out of bounds as wall
-    
+
     def is_wall(self, x, y):
         """Check if tile is a wall"""
         return self.get_tile_at(x, y) == 1
-    
+
     def can_move_in_direction(self, dx, dy):
         """Check if Pacman can move in a given direction"""
         if dx == 0 and dy == 0:
@@ -90,7 +91,7 @@ class Pacman:
             return not self.is_wall(next_x, next_y)
         
         return False
-    
+
     def handle_input(self, event):
         """Handle keyboard input for movement"""
         if event.type == pygame.KEYDOWN:
@@ -102,7 +103,7 @@ class Pacman:
                 self.next_dx, self.next_dy = -1, 0
             elif event.key == pygame.K_RIGHT:
                 self.next_dx, self.next_dy = 1, 0
-    
+
     def update(self):
         """Update Pacman's position - SIMPLE AND RELIABLE"""
         # Update mouth animation
@@ -128,11 +129,16 @@ class Pacman:
             self.px = current_x * TILE_SIZE + center_x
             self.py = current_y * TILE_SIZE + center_y
             
-            # Eat pellet at current position
+            # Eat pellet at current position and count it
             if 0 <= current_x < MAP_WIDTH and 0 <= current_y < MAP_HEIGHT:
                 tile_value = MAP_DATA[current_y][current_x]
                 if tile_value == 2 or tile_value == 3:
                     MAP_DATA[current_y][current_x] = 0
+                    if tile_value == 2:
+                        self.pallet_count += 10
+                    else :
+                        self.pallet_count += 50
+                    print(self.pallet_count)
             
             # Try to change to queued direction if it's valid
             if self.can_move_in_direction(self.next_dx, self.next_dy):
@@ -179,7 +185,7 @@ class Pacman:
                     else:
                         self.py = current_y * TILE_SIZE + center_y
                         self.dy = 0
-    
+
     def handle_tunnel(self):
         """Handle tunnel teleportation - SIMPLE VERSION"""
         # Check if we're in the tunnel row (row 9)
@@ -205,7 +211,7 @@ class Pacman:
             if pixel_in_tile > TILE_SIZE // 2:
                 # Teleport to left side
                 self.px = TILE_SIZE // 2
-    
+
     def draw(self):
         """Draw Pacman with wide mouth"""
         # Calculate mouth opening

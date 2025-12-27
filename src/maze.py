@@ -16,7 +16,7 @@ try:
     )
     with open(maze_file_path, "r", encoding="utf-8") as f:
         y = json.load(f)
-    map01 = y["1"]["map"]
+    map01 = y["2"]["map"]
 except FileNotFoundError as e:
     print(f"Map file not found: {e.filename}")
     sys.exit(1)
