@@ -2,6 +2,12 @@ import pygame
 import time
 import math
 from maze import MAP_DATA, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT, screen
+font = pygame.font.Font("fonts/CascadiaCode-VariableFont_wght.ttf")
+
+try:
+    text_surface = font.render("My game" , False, "Green")
+except :
+    print("something went wrong!")
 
 class Pacman:
     def __init__(self):
@@ -140,6 +146,7 @@ class Pacman:
                         self.pallet_count += 10
                     else :
                         self.pallet_count += 50
+                    screen.blit(text_surface)
                     print(self.pallet_count)
             
             # Try to change to queued direction if it's valid
