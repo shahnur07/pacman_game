@@ -217,21 +217,19 @@ class Pacman:
             # When we reach the right side of the tile
             if pixel_in_tile > TILE_SIZE // 2:
                 # Teleport to left side
-                self.px = TILE_SIZE // 2
+                self.px = TILE_SIZE+10 // 2
 
     def draw(self):
-        """Draw Pacman and title text in the top tile"""
-        # Lazily create the title text once pygame font is ready
-        global font, text_surface, text_rect
-        if text_surface is None:
+        """Draw Pacman and pallet_count text in the top tile"""
+        # Lazily initialize font once
+        global font
+        if font is None:
             try:
                 if not pygame.font.get_init():
                     pygame.font.init()
                 font = pygame.font.Font("src/fonts/CascadiaCode-VariableFont_wght.ttf", 22)
-                text_surface = font.render("My game", True, (0, 255, 0))
-                text_rect = text_surface.get_rect(center=(TILE_SIZE // 2, TILE_SIZE // 2))
             except Exception as e:
-                print("Font init/render failed:", e)
+                print("Font init failed:", e)
         # Calculate mouth opening
         if self.dx == 0 and self.dy == 0:
             # Closed mouth when stationary
@@ -255,9 +253,11 @@ class Pacman:
         else:
             # Stationary - draw full circle
             pygame.draw.circle(screen, (255, 255, 0), (center_x, center_y), self.radius)
-            # Also render the text in the top-left tile
-            if text_surface and text_rect:
-                screen.blit(text_surface, text_rect)
+            # Render dynamic pallet_count in the top-left tile
+            if font:
+                title_surface = font.render(str(self.pallet_count), True, (0, 255, 0))
+                title_rect = title_surface.get_rect(center=(TILE_SIZE // 2, TILE_SIZE // 2))
+                screen.blit(title_surface, title_rect)
             return
 
         # Draw Pacman as a filled arc (pie slice)
@@ -288,6 +288,8 @@ class Pacman:
         # Draw the filled polygon
         pygame.draw.polygon(screen, (255, 255, 0), points)
 
-        # Also render the text in the top-left tile each frame
-        if text_surface and text_rect:
-            screen.blit(text_surface, text_rect)
+        # Render dynamic pallet_count in the top-left tile each frame
+        if font:
+            title_surface = font.render(str(self.pallet_count), True, (0, 255, 0))
+            title_rect = title_surface.get_rect(center=(TILE_SIZE // 2, TILE_SIZE // 2))
+            screen.blit(title_surface, title_rect)
