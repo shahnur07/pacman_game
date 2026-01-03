@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import heapq
+import os
 from maze import MAP_DATA, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE, screen
 
 WALL = 1
@@ -152,9 +153,23 @@ class Ghost:
         self.pacman = pacman
         self.speed = speed
         self.radius = TILE_SIZE // 2 - 2
+        self.image = None
 
         # Build graph once
         self.nodes, self.adj = build_graph()
+
+        # Load red ghost sprite if available
+        try:
+            sprite_path = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "..", "assets", "sprites", "Ghost-red.png")
+            )
+            img = pygame.image.load(sprite_path).convert_alpha()
+            # Scale to a tile size with a tiny padding so it fits corridors
+            size = max(1, TILE_SIZE - 2)
+            self.image = pygame.transform.smoothscale(img, (size, size))
+        except Exception as e:
+            # Fallback: keep drawing a circle if sprite fails to load
+            print("Failed to load ghost sprite:", e)
 
         # Choose a spawn among 5,6,7,8
         spawn_tiles = []
@@ -277,14 +292,18 @@ class Ghost:
 
     def draw(self):
         cx, cy = int(self.px), int(self.py)
-        body_color = self.color
-        pygame.draw.circle(screen, body_color, (cx, cy), self.radius)
-        # Eyes
-        eye_offset_x = self.radius // 2
-        eye_offset_y = -self.radius // 3
-        eye_radius = max(2, self.radius // 4)
-        pygame.draw.circle(screen, (255, 255, 255), (cx - eye_offset_x, cy + eye_offset_y), eye_radius)
-        pygame.draw.circle(screen, (255, 255, 255), (cx + eye_offset_x, cy + eye_offset_y), eye_radius)
-        pupil_radius = max(1, eye_radius // 2)
-        pygame.draw.circle(screen, (0, 0, 255), (cx - eye_offset_x + 1, cy + eye_offset_y), pupil_radius)
-        pygame.draw.circle(screen, (0, 0, 255), (cx + eye_offset_x + 1, cy + eye_offset_y), pupil_radius)
+        if self.image is not None:
+            rect = self.image.get_rect(center=(cx, cy))
+            screen.blit(self.image, rect)
+        else:
+            body_color = self.color
+            pygame.draw.circle(screen, body_color, (cx, cy), self.radius)
+            # Eyes
+            eye_offset_x = self.radius // 2
+            eye_offset_y = -self.radius // 3
+            eye_radius = max(2, self.radius // 4)
+            pygame.draw.circle(screen, (255, 255, 255), (cx - eye_offset_x, cy + eye_offset_y), eye_radius)
+            pygame.draw.circle(screen, (255, 255, 255), (cx + eye_offset_x, cy + eye_offset_y), eye_radius)
+            pupil_radius = max(1, eye_radius // 2)
+            pygame.draw.circle(screen, (0, 0, 255), (cx - eye_offset_x + 1, cy + eye_offset_y), pupil_radius)
+            pygame.draw.circle(screen, (0, 0, 255), (cx + eye_offset_x + 1, cy + eye_offset_y), pupil_radius)
