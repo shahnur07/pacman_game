@@ -4,3 +4,4 @@ temp
 temp.*
 *_temp.*
 temp_*.*
+.venv
