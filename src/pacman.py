@@ -256,8 +256,7 @@ class Pacman:
             # Render dynamic pallet_count in the top-left tile
             if font:
                 title_surface = font.render(str(self.pallet_count), True, (0, 255, 0))
-                title_rect = title_surface.get_rect(center=(TILE_SIZE // 2, TILE_SIZE // 2))
-                screen.blit(title_surface, title_rect)
+                screen.blit(title_surface, (0, 0))
             return
 
         # Draw Pacman as a filled arc (pie slice)
@@ -291,5 +290,4 @@ class Pacman:
         # Render dynamic pallet_count in the top-left tile each frame
         if font:
             title_surface = font.render(str(self.pallet_count), True, (0, 255, 0))
-            title_rect = title_surface.get_rect(center=(TILE_SIZE // 2, TILE_SIZE // 2))
-            screen.blit(title_surface, title_rect)
+            screen.blit(title_surface, (0, 0))
