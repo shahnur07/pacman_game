@@ -33,8 +33,14 @@ while True:
         # Handle Pacman input
         pacman.handle_input(event)
     
-    # Update entities
+    # Update Pacman first
     pacman.update()
+    # If Pacman ate a power pellet this frame, enter scatter BEFORE collisions
+    if getattr(pacman, 'last_ate_power', False):
+        if hasattr(red_ghost, 'enter_scatter_mode'):
+            red_ghost.enter_scatter_mode()
+        pacman.last_ate_power = False
+    # Then update ghost and check collisions
     red_ghost.update()
     level.check_collision_and_reset(pacman, red_ghost)
     

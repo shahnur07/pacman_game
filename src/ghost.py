@@ -152,8 +152,14 @@ class Ghost:
         self.color = color
         self.pacman = pacman
         self.speed = speed
+        self.normal_speed = speed
+        self.return_speed = 5
         self.radius = TILE_SIZE // 2 - 2
         self.image = None
+        self.scatter_image = None
+        self.scatter_active = False
+        self.returning_to_base = False
+        self._scatter_until_ms = None
 
         # Build graph once
         self.nodes, self.adj = build_graph()
@@ -167,6 +173,11 @@ class Ghost:
             # Scale to a tile size with a tiny padding so it fits corridors
             size = max(1, TILE_SIZE - 2)
             self.image = pygame.transform.smoothscale(img, (size, size))
+            scatter_path = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "..", "assets", "sprites", "scater_mode.png")
+            )
+            s_img = pygame.image.load(scatter_path).convert_alpha()
+            self.scatter_image = pygame.transform.smoothscale(s_img, (size, size))
         except Exception as e:
             # Fallback: keep drawing a circle if sprite fails to load
             print("Failed to load ghost sprite:", e)
@@ -196,12 +207,33 @@ class Ghost:
         # If spawn tile is not a node, plan an initial step toward nearest node
         self._plan_move_from_non_node()
 
+    def enter_scatter_mode(self):
+        # Activate scatter for 5–8 seconds
+        self.scatter_active = True
+        self.returning_to_base = False
+        now = pygame.time.get_ticks()
+        duration_ms = random.randint(5000, 8000)
+        self._scatter_until_ms = now + duration_ms
+
+    def take_down_and_return_to_base(self):
+        # Triggered when Pacman and ghost collide during scatter
+        # Keep scatter visuals while returning to base
+        self.scatter_active = True
+        self.returning_to_base = True
+        # Increase speed while returning
+        self.speed = self.return_speed
+        # Ensure motion toward the graph
+        self._plan_move_from_non_node()
+
     def reset_to_spawn(self):
         self.px = self.spawn_tile[0] * TILE_SIZE + TILE_SIZE // 2
         self.py = self.spawn_tile[1] * TILE_SIZE + TILE_SIZE // 2
         self.dx, self.dy = 0, 0
         self.current_target_node = None
         self.path_nodes = []
+        # Restore normal chase speed and visuals
+        self.speed = self.normal_speed
+        self.scatter_active = False
         self._plan_move_from_non_node()
 
     def current_tile(self):
@@ -294,12 +326,15 @@ class Ghost:
         tx, ty = self.current_tile()
         if (tx, ty) not in self.nodes:
             return
-        # Determine target based on Pacman position
-        if self.pacman is not None:
-            p_tile = (int(self.pacman.px // TILE_SIZE), int(self.pacman.py // TILE_SIZE))
+        # Determine target based on mode
+        if self.returning_to_base:
+            target_node = nearest_node_from_tile(self.spawn_tile, self.nodes)
         else:
-            p_tile = (MAP_WIDTH // 2, MAP_HEIGHT // 2)
-        target_node = nearest_node_from_tile(p_tile, self.nodes)
+            if self.pacman is not None:
+                p_tile = (int(self.pacman.px // TILE_SIZE), int(self.pacman.py // TILE_SIZE))
+            else:
+                p_tile = (MAP_WIDTH // 2, MAP_HEIGHT // 2)
+            target_node = nearest_node_from_tile(p_tile, self.nodes)
         start_node = (tx, ty)
         path = dijkstra(self.adj, start_node, target_node)
         self.path_nodes = path
@@ -346,9 +381,24 @@ class Ghost:
         # Handle tunnel wrapping like Pacman
         self.handle_tunnel()
 
+        # Auto-exit scatter when time expires (unless returning to base)
+        if self.scatter_active and not self.returning_to_base:
+            if self._scatter_until_ms is not None and pygame.time.get_ticks() >= self._scatter_until_ms:
+                self.scatter_active = False
+                self._scatter_until_ms = None
+
+        # Finish return-to-base when reaching spawn center
+        if self.returning_to_base:
+            if self.at_tile_center() and self.current_tile() == self.spawn_tile:
+                self.reset_to_spawn()
+                self.returning_to_base = False
+
     def draw(self):
         cx, cy = int(self.px), int(self.py)
-        if self.image is not None:
+        if self.scatter_active and self.scatter_image is not None:
+            rect = self.scatter_image.get_rect(center=(cx, cy))
+            screen.blit(self.scatter_image, rect)
+        elif self.image is not None:
             rect = self.image.get_rect(center=(cx, cy))
             screen.blit(self.image, rect)
         else:
