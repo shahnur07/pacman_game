@@ -20,12 +20,12 @@ class LevelSystem:
     def draw_lives(self):
         if self.life_icon is None or self.lives <= 0:
             return
-        margin_x = 6
-        margin_y = 4
         spacing = self.life_icon.get_width() + 6
+        screen_w = screen.get_width()
         for i in range(self.lives):
             rect = self.life_icon.get_rect()
-            rect.topleft = (margin_x + i * spacing, margin_y)
+            # Place icons anchored from the top-right, extending leftwards
+            rect.topright = (screen_w - i * spacing, 0)
             screen.blit(self.life_icon, rect)
 
     def check_collision_and_reset(self, pacman, ghost):
