@@ -37,6 +37,8 @@ class Pacman:
         
         # Track if we're in a tunnel for teleportation
         self.in_tunnel = False
+        # Power pellet flag (set true for a single frame when eaten)
+        self.last_ate_power = False
         
         print(f"Pacman starting at tile: {self.start_pos}")
 
@@ -143,8 +145,9 @@ class Pacman:
                     MAP_DATA[current_y][current_x] = 0
                     if tile_value == 2:
                         self.pallet_count += 10
-                    else :
+                    else:
                         self.pallet_count += 50
+                        self.last_ate_power = True
                     # screen.blit()
             
             # Try to change to queued direction if it's valid
