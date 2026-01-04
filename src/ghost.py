@@ -171,11 +171,11 @@ class Ghost:
             # Fallback: keep drawing a circle if sprite fails to load
             print("Failed to load ghost sprite:", e)
 
-        # Choose a spawn among 5,6,7,8
+        # Choose a spawn among 5
         spawn_tiles = []
         for y in range(MAP_HEIGHT):
             for x in range(MAP_WIDTH):
-                if MAP_DATA[y][x] in {5, 6, 7, 8}:
+                if MAP_DATA[y][x] in {5}:
                     spawn_tiles.append((x, y))
         if not spawn_tiles:
             # Fallback: center of map
@@ -193,6 +193,8 @@ class Ghost:
         # Path state: list of node tiles; we move from one to next
         self.current_target_node = None
         self.path_nodes = []
+        # If spawn tile is not a node, plan an initial step toward nearest node
+        self._plan_move_from_non_node()
 
     def reset_to_spawn(self):
         self.px = self.spawn_tile[0] * TILE_SIZE + TILE_SIZE // 2
@@ -200,6 +202,7 @@ class Ghost:
         self.dx, self.dy = 0, 0
         self.current_target_node = None
         self.path_nodes = []
+        self._plan_move_from_non_node()
 
     def current_tile(self):
         return int(self.px // TILE_SIZE), int(self.py // TILE_SIZE)
@@ -214,6 +217,45 @@ class Ghost:
         tx, ty = self.current_tile()
         self.px = tx * TILE_SIZE + TILE_SIZE // 2
         self.py = ty * TILE_SIZE + TILE_SIZE // 2
+
+    def _next_tile_to_nearest_node(self, start_tile):
+        # BFS over walkable tiles to find nearest graph node and return next step from start
+        from collections import deque
+        sx, sy = start_tile
+        if (sx, sy) in self.nodes:
+            return None
+        dq = deque()
+        dq.append((sx, sy))
+        parent = { (sx, sy): None }
+        seen = { (sx, sy) }
+        while dq:
+            x, y = dq.popleft()
+            for nx, ny in neighbors_with_tunnel(x, y):
+                if (nx, ny) in seen:
+                    continue
+                parent[(nx, ny)] = (x, y)
+                if (nx, ny) in self.nodes:
+                    # reconstruct path from start to this node
+                    path = [(nx, ny)]
+                    cur = (nx, ny)
+                    while parent[cur] is not None:
+                        cur = parent[cur]
+                        path.append(cur)
+                    path.reverse()
+                    if len(path) >= 2:
+                        return path[1]  # first step from start
+                    else:
+                        return None
+                seen.add((nx, ny))
+                dq.append((nx, ny))
+        return None
+
+    def _plan_move_from_non_node(self):
+        tx, ty = self.current_tile()
+        if (tx, ty) not in self.nodes:
+            next_step = self._next_tile_to_nearest_node((tx, ty))
+            if next_step is not None:
+                self.choose_next_direction_to(next_step)
 
     def handle_tunnel(self):
         tx, ty = self.current_tile()
@@ -280,7 +322,14 @@ class Ghost:
                 self.recompute_path_if_needed()
             else:
                 # At center; if current tile is a node, recompute toward Pacman
-                self.recompute_path_if_needed()
+                if (tx, ty) in self.nodes:
+                    self.recompute_path_if_needed()
+                else:
+                    # Ensure we have a direction to reach a node if stuck
+                    if self.dx == 0 and self.dy == 0:
+                        next_step = self._next_tile_to_nearest_node((tx, ty))
+                        if next_step is not None:
+                            self.choose_next_direction_to(next_step)
 
         # Move along current direction if walkable; else stop
         next_px = self.px + self.dx * self.speed
