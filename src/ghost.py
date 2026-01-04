@@ -194,6 +194,13 @@ class Ghost:
         self.current_target_node = None
         self.path_nodes = []
 
+    def reset_to_spawn(self):
+        self.px = self.spawn_tile[0] * TILE_SIZE + TILE_SIZE // 2
+        self.py = self.spawn_tile[1] * TILE_SIZE + TILE_SIZE // 2
+        self.dx, self.dy = 0, 0
+        self.current_target_node = None
+        self.path_nodes = []
+
     def current_tile(self):
         return int(self.px // TILE_SIZE), int(self.py // TILE_SIZE)
 
